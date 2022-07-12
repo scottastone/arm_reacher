@@ -13,14 +13,14 @@ class Arm():
         self._target_distance = dict.fromkeys(self._target_names)
         self._target_pos = dict.fromkeys(self._target_names)
         self._target_contact = dict.fromkeys(self._target_names)
-        
+
         self.reset()
 
-    def render(self, width=640, height=320, camera_id="fixed"):
+    def render(self, update_rate=0.01, width=640, height=320, camera_id="fixed"):
         pixels = self._physics.render(height=height, width=width, camera_id=camera_id)
         plt.imshow(pixels)
         plt.show(block=False)
-        plt.pause(0.1)
+        plt.pause(update_rate)
         plt.clf()
         plt.cla()
 

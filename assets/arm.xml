@@ -1,3 +1,5 @@
+<!-- Modified from the original Mujoco Arm Reacher -->
+
 <mujoco model="two-link planar reacher">
   <include file="./common/skybox.xml"/>
   <include file="./common/visual.xml"/>
