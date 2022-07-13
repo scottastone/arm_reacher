@@ -1,13 +1,32 @@
-import dm_control
-from dm_control import mujoco
+"""Mujoco environment to control a two-link planar arm with two targets."""
+
+from typing import Tuple, Sequence, Dict, Any
 import numpy as np
 import cv2
+from dm_control import mujoco
 
 class Arm():
+    """Environment to allow control of a two-link planar arm in mujoco.
+
+    Adapted version of reacher in dm_control suite (https://github.com/deepmind/dm_control).
+    """
+
     def __init__(self,
-                 xml_path,
-                 target_names=["left_target", "right_target"],
-                 max_steps_per_episode=600,):
+                 xml_path: str,
+                 target_names: Sequence[str] = ["left_target", "right_target"],
+                 max_steps_per_episode: int = 600,
+                 ) -> None:
+        """
+        Initialize Arm class with .xml file and target names.
+
+        Args:
+            xml_path: Path to xml file with arm and targets.
+            target_names: Names of each target in xml file.
+            max_steps_per_episode: Max env steps before Done == True.
+
+        Returns:
+            None
+        """
         self._xml_path = xml_path
         self._physics = mujoco.Physics.from_xml_path(self._xml_path)
 
@@ -22,13 +41,20 @@ class Arm():
 
         self.reset()
 
-    def render(self, update_rate=1/60, width=640, height=320, camera_id="fixed"):
+    def render(self,
+        update_rate: float = 1/60,
+        width: int = 640,
+        height: int = 320,
+        camera_id: str = "fixed",
+        ) -> None:
+        """Optionally render arm in a window (to be called on every step)."""
         pixels = self._physics.render(height=height, width=width, camera_id=camera_id)
         cv2.imshow("arm", pixels)
         cv2.moveWindow("arm", 0, 0)
         cv2.waitKey(int(update_rate * 1000))
 
     def _is_contacting_target(self):
+        """Update self._target_contact with booleans for finger contacting each target."""
         for target_name in self._target_names:
             target_pos = self._physics.named.data.geom_xpos[target_name, :2]
             finger_pos = self._physics.named.data.geom_xpos['finger', :2]
@@ -39,12 +65,21 @@ class Arm():
             else:
                 self._target_contact[target_name] = False
 
-    def get_reward(self):
-        # check if we are touching the correct target
-        # TODO: figure out what target we should be reaching for
-        return 0
-    
-    def step(self, action):
+    def step(
+        self,
+        action: np.ndarray
+        ) -> Tuple[Dict[str, np.ndarray], float, bool, Dict[str, Any]]:
+        """Step the mujoco environment.
+
+        Args:
+            action: Two joint torque forces between -1 and +1.
+
+        Returns:
+            obs: Dictionary of numpy arrays for agent input.
+            reward: Scalar reward value for this step.
+            done: Boolean for terminal episode state.
+            info: Dictionary of episode information.
+        """
         self._physics.set_control(control=action)
         self._physics.step()
         self._is_contacting_target()
@@ -54,18 +89,19 @@ class Arm():
         obs = self.get_observation()
         if self.steps_taken >= self.max_steps_per_episode:
             done = True
-        else: 
+        else:
             done = False
-        reward = self.get_reward()
+        reward = None
         info = {
             "left_target_contact": self._target_contact["left_target"],
             "right_target_contact": self._target_contact["right_target"],
             "steps_taken": self.steps_taken,
-        } 
+        }
 
         return obs, reward, done, info
 
-    def get_observation(self):
+    def get_observation(self) -> Dict[str, np.ndarray]:
+        """Returns environment observations for agent input."""
         obs = {}
         obs["shoulder_angle_sin"] =     np.sin(self._physics.named.data.xmat['arm'][1])
         obs["shoulder_angle_cos"] =     np.cos(self._physics.named.data.xmat['arm'][1])
@@ -75,14 +111,17 @@ class Arm():
         obs["wrist_velocity"] =         self._physics.named.data.qvel['wrist'][0]
         return obs
 
-    def get_time(self):
+    def get_time(self) -> float:
+        """Returns physics simulation time in seconds from episode start."""
         return self._physics.time()
 
-    def _initialize_episode(self):
+    def _initialize_episode(self) -> None:
+        """Set joint angles at start of episode so finger is on the start position."""
         self._physics.named.data.qpos['shoulder'] = self._JOINT_ANGLE / 2
         self._physics.named.data.qpos['wrist'] = np.pi - self._JOINT_ANGLE
 
-    def reset(self):
+    def reset(self) -> Dict[str, np.ndarray]:
+        """Reset environment and physics simulation."""
         with self._physics.reset_context():
             self._initialize_episode()
         self.steps_taken = 0
