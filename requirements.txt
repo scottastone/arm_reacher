@@ -1,0 +1,4 @@
+dm_control
+opencv-python
+numpy
+tqdm
