@@ -1,7 +1,7 @@
+import dm_control
 from dm_control import mujoco
 import numpy as np
 import cv2
-import dm_control
 
 class Arm():
     def __init__(self,
@@ -60,6 +60,7 @@ class Arm():
         info = {
             "left_target_contact": self._target_contact["left_target"],
             "right_target_contact": self._target_contact["right_target"],
+            "steps_taken": self.steps_taken,
         } 
 
         return obs, reward, done, info
@@ -73,6 +74,9 @@ class Arm():
         obs["shoulder_velocity"] =      self._physics.named.data.qvel['shoulder'][0]
         obs["wrist_velocity"] =         self._physics.named.data.qvel['wrist'][0]
         return obs
+
+    def get_time(self):
+        return self._physics.time()
 
     def _initialize_episode(self):
         self._physics.named.data.qpos['shoulder'] = self._JOINT_ANGLE / 2
