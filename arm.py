@@ -2,6 +2,8 @@ from dm_control import mujoco
 import numpy as np
 import cv2
 
+import dm_control
+
 class Arm():
     def __init__(self,
                  xml_path,
@@ -44,8 +46,6 @@ class Arm():
         return 0
     
     def step(self, action):
-        
-
         self._physics.set_control(control=action)
         self._physics.step()
         self._is_contacting_target()
