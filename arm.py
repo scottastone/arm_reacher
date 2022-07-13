@@ -1,7 +1,6 @@
 from dm_control import mujoco
 import numpy as np
 import cv2
-
 import dm_control
 
 class Arm():
@@ -25,12 +24,12 @@ class Arm():
 
     def render(self, update_rate=1/60, width=640, height=320, camera_id="fixed"):
         pixels = self._physics.render(height=height, width=width, camera_id=camera_id)
-        cv2.imshow("image", pixels)
-        cv2.moveWindow("image", 0, 0)
+        cv2.imshow("arm", pixels)
+        cv2.moveWindow("arm", 0, 0)
         cv2.waitKey(int(update_rate * 1000))
 
     def _is_contacting_target(self):
-        for idx, target_name in enumerate(self._target_names):
+        for target_name in self._target_names:
             target_pos = self._physics.named.data.geom_xpos[target_name, :2]
             finger_pos = self._physics.named.data.geom_xpos['finger', :2]
             self._target_distance[target_name] = np.linalg.norm(target_pos - finger_pos)
