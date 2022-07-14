@@ -49,8 +49,9 @@ class Arm():
         ) -> None:
         """Optionally render arm in a window (to be called on every step)."""
         pixels = self._physics.render(height=height, width=width, camera_id=camera_id)
+        
+        cv2.namedWindow("arm", cv2.WINDOW_NORMAL)
         cv2.imshow("arm", pixels)
-        cv2.moveWindow("arm", 0, 0)
         cv2.waitKey(int(update_rate * 1000))
 
     def _is_contacting_target(self):

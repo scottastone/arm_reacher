@@ -13,8 +13,9 @@ for episode in range(N_EPISODES):
     for step in range(STEPS_PER_EPISODE):
         action = np.random.uniform(-1, 1, size=2)
         obs, reward, done, info = arm.step(action=action)
-        print(f"{arm.get_time():>16.4}s: {info}")
+        print(f"{arm.get_time():>16.4}s: {reward} {done} {info}")
 
+        ### Optional: Visualize the environment
         # arm.render()
 
         if done:
